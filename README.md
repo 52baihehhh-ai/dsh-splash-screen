@@ -152,7 +152,8 @@ dsh-splash-screen/
   不打包、不 import 任何宿主包。
 - 动画挂进 `shell.overlay` 槽位（`ui-layout` 声明的 root 级 list 槽），自己只 `position: fixed`
   铺满并给 `z-index: 9000`，不吃全局层级。
-- 内部用 **Shadow DOM** 包住开屏，样式绝不外溢到宿主界面。
+- 样式由单个 `<style id="dsh-splash-style">` 注入，类名统一带 `sp-` 前缀、状态规则都写在
+  `#dsh-splash-root` 作用域下，避免与宿主界面撞车。
 - 对外只暴露 `globalThis.__DSH_SPLASH__ = { createSplash, destroySplash }`。
 
 ---

@@ -1,0 +1,4 @@
+# 统一以 LF 入库与检出。
+# client.js / index.js 是构建产物，scripts/build.mjs --check 逐字节比对，
+# 若在 Windows 上被检出成 CRLF，会误报「产物过期」。
+* text=auto eol=lf
