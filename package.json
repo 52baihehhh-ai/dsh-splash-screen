@@ -1,0 +1,60 @@
+{
+  "name": "dsh-splash-screen",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "DSH 开屏动画（淡绿清晨主题）：可跳过的全屏启动动画，纯插件实现，可在插件库开关",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "splash",
+    "boot-animation",
+    "ui"
+  ],
+  "homepage": "https://github.com/52baihehhh-ai/dsh-splash-screen#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/52baihehhh-ai/dsh-splash-screen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/52baihehhh-ai/dsh-splash-screen/issues"
+  },
+  "author": "52baihehhh-ai",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "slots",
+        "theme"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/build.mjs --check",
+    "test": "node test/splash-smoke.mjs && node test/node-half-check.mjs && node test/wiring-check.mjs"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "art.webp",
+    "locale",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT"
+}

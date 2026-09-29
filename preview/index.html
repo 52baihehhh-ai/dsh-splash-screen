@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN" data-platform="win32">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DSH 开屏动画 · 开发预览</title>
+<style>
+  /* 这一层只是「开屏底下压着的界面」的仿制品，用来判断出场后接得住接不住。 */
+  :root {
+    --dsw-alias-bg-base: #f5f8e6;
+    --dsw-alias-bg-layer-1: #fdfef7;
+    --dsw-alias-border-l1: #dfead0;
+    --dsw-alias-label-primary: #262b14;
+    --dsw-alias-label-secondary: #55632f;
+    --dsw-alias-label-tertiary: #6f7d4a;
+    --dsw-alias-brand-primary: #4f7d24;
+    --dsw-specific-sidebar-fill: #f5f1d6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Segoe UI Variable Text", "Segoe UI", Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    color: var(--dsw-alias-label-primary);
+    background: var(--dsw-alias-bg-base);
+  }
+  .app { display: grid; grid-template-columns: 264px 1fr; height: 100%; }
+  .side {
+    background: var(--dsw-specific-sidebar-fill);
+    border-right: 1px solid var(--dsw-alias-border-l1);
+    padding: 44px 14px 14px;
+  }
+  .brand { font-weight: 700; letter-spacing: .06em; padding: 0 10px 16px; font-size: 13px; }
+  .side a { display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--dsw-alias-label-secondary); font-size: 13px; }
+  .side a.on { background: #dfeebe; color: var(--dsw-alias-label-primary); font-weight: 600; }
+  .main { padding: 46px 34px; overflow: auto; }
+  .main h1 { margin: 0 0 6px; font-size: 22px; }
+  .main p { margin: 0 0 22px; color: var(--dsw-alias-label-tertiary); font-size: 13px; }
+  .card { background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l1); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+  .card h2 { margin: 0 0 8px; font-size: 13px; color: var(--dsw-alias-brand-primary); }
+  .card p { margin: 0; color: var(--dsw-alias-label-secondary); font-size: 13px; line-height: 1.65; }
+  .bar {
+    position: fixed; bottom: 16px; right: 16px; z-index: 5000; display: flex; gap: 8px;
+    background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l1);
+    border-radius: 10px; padding: 8px; box-shadow: 0 6px 18px rgba(38, 43, 20, .1);
+  }
+  .bar button { font: inherit; font-size: 12px; padding: 7px 13px; border-radius: 7px; cursor: pointer; border: 1px solid var(--dsw-alias-border-l1); background: transparent; color: var(--dsw-alias-label-secondary); }
+  .bar button:hover { background: #e9f1d4; color: var(--dsw-alias-label-primary); }
+  #status { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 5000;
+    background: rgba(11, 20, 10, .82); color: #eef3de; padding: 6px 14px; border-radius: 999px;
+    font: 500 11px/1.5 ui-monospace, Consolas, monospace; letter-spacing: .1em; }
+</style>
+</head>
+<body>
+<div id="status">正在加载 src/splash.js…</div>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">DEEPSEEK HARNESS</div>
+    <a class="on" href="#">对话</a><a href="#">插件</a><a href="#">设置</a><a href="#">工作区</a>
+  </aside>
+  <main class="main">
+    <h1>开屏底下的界面（仿制）</h1>
+    <p>用来判断滑幕出场之后接不接得住</p>
+    <div class="card">
+      <h2>这块是预览壳</h2>
+      <p>真正的开屏是全屏遮罩，动画放完或你跳过之后滑幕出场，露出这一层。</p>
+    </div>
+    <div class="card">
+      <h2>迭代方式</h2>
+      <p>本页直接加载插件目录里的 <code>src/splash.js</code>，改完源码刷新即可看到新版本，不必重启 DSH、也不必重跑构建。贴图用的是上一级的 <code>art.webp</code>。</p>
+    </div>
+  </main>
+</div>
+
+<div class="bar">
+  <button id="replay" type="button">重播</button>
+</div>
+
+<script>
+  // ---------------------------------------------------------------------------
+  // 开发预览壳：不搞打包那一套，只把 src/splash.js 原样求值成
+  // globalThis.__DSH_SPLASH__，再调 createSplash()。
+  //
+  // 为什么能这么简单：src/splash.js 本身是「无依赖、无 import/export、只往
+  // globalThis 挂一个对象」的普通脚本 —— 这条纪律本来是构建器要求的，这里白拿。
+  // ---------------------------------------------------------------------------
+  (function () {
+    var status = document.getElementById('status')
+    var current = null
+
+    function say(text) {
+      status.textContent = text
+    }
+
+    function evaluate(source) {
+      // eslint-disable-next-line no-new-func
+      new Function(source)()
+      if (!globalThis.__DSH_SPLASH__) throw new Error('源码没有挂出 __DSH_SPLASH__')
+    }
+
+    function play() {
+      if (current && globalThis.__DSH_SPLASH__) globalThis.__DSH_SPLASH__.destroySplash()
+      current = globalThis.__DSH_SPLASH__.createSplash({
+        mount: document.body,
+        owner: 'preview',
+        artSrc: '../art.webp',
+        muteKey: 'dsh-splash-screen:muted',
+        onDone: function (reason) {
+          say('开屏结束（' + reason + '）· 点右下「重播」再看一次')
+        },
+      })
+
+      // 诊断：B 阶段（3.1s）之后把贴图的真实加载结果写到状态条上，
+      // 「图没出现」时能一眼区分是没取到、还是取到了但被裁掉/太淡。
+      window.setTimeout(function () {
+        var art = document.querySelector('[data-sp-art]')
+        if (!art) return
+        var st = art.getAttribute('data-sp-art-status') || '未触发'
+        var nat = art.getAttribute('data-sp-art-natural') || '-'
+        var img = art.querySelector('img')
+        var cs = img ? window.getComputedStyle(img) : null
+        say(
+          '贴图：' + st + ' 原始尺寸=' + nat +
+          (cs ? ' 显示=' + Math.round(img.getBoundingClientRect().width) + 'x' + Math.round(img.getBoundingClientRect().height) +
+            ' objectFit=' + cs.objectFit + ' opacity(父)=' + window.getComputedStyle(art).opacity : ''),
+        )
+      }, 4200)
+    }
+
+    // file:// 下 fetch 会被浏览器拒绝，退回 <script src>，这样双击打开本页也能看。
+    function loadViaScriptTag() {
+      return new Promise(function (resolve, reject) {
+        var el = document.createElement('script')
+        el.src = '../src/splash.js'
+        el.onload = function () {
+          resolve(null)
+        }
+        el.onerror = function () {
+          reject(new Error('src/splash.js 加载失败'))
+        }
+        document.head.appendChild(el)
+      })
+    }
+
+    fetch('../src/splash.js')
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status)
+        return res.text()
+      })
+      .catch(function () {
+        return loadViaScriptTag()
+      })
+      .then(function (source) {
+        if (typeof source === 'string') {
+          evaluate(source)
+          say('已加载 ' + source.length + ' 字符 · 播放中（点右下可重播）')
+        } else {
+          // 走的是 <script src> 分支：源码由浏览器直接求值，拿不到文本长度
+          if (!globalThis.__DSH_SPLASH__) throw new Error('src/splash.js 没有挂出 __DSH_SPLASH__')
+          say('已加载 src/splash.js · 播放中（点右下可重播）')
+        }
+        play()
+      })
+      .catch(function (err) {
+        say('加载失败：' + err.message + ' —— 请用本地静态服务器打开本页')
+      })
+
+    document.getElementById('replay').addEventListener('click', function () {
+      try {
+        play()
+        say('重播中')
+      } catch (err) {
+        say('重播失败：' + err.message)
+      }
+    })
+  })()
+</script>
+</body>
+</html>

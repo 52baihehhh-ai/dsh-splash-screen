@@ -1,0 +1,22 @@
+# ============================================================================
+# dsh-splash-screen —— DSH bundle patch
+# ============================================================================
+# 本文件是插件的「挂载声明」：DSH 启动时按 bundle 层栈叠加各插件 patch，
+# 这里把 dsh-splash-screen 的 Loader 行插入 Web/桌面 profile 的配置树。
+#
+# 安装（本地源码，link 方式；desktop profile 由桌面 shell 管理，推荐在
+# 应用内「插件」页面安装，或使用 plugin_manager 工具）：
+#   dsh plugin --profile web add link:<本目录绝对路径>
+#
+# 关闭而不卸载（隔离预案）：在 profile 的 cordis.patch.yml 里把本行停用——
+#   - id: dsh-splash-screen
+#     disabled: true
+# 也可以在应用侧栏「插件」页面直接拨开关（走同一个写入路径）。
+#
+# 说明：本插件的 node 半是空实现，只为让宿主发现并下发 client 半；
+# 开屏由 client 半注册到 shell.overlay 槽位渲染。
+# ============================================================================
+
+- insert:
+    - id: dsh-splash-screen
+      name: dsh-splash-screen
